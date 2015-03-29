@@ -1,0 +1,601 @@
+	:1000	; printhello:
+012706	; mov	$11000,sp
+011000
+012700	; mov	$hello,r0
+001016
+004737	; jsr	pc,*$puts
+<puts>
+000000	; halt
+	; hello:
+'h 'e 'l 'l 'o ', '  'w 'o 'r 'l 'd .0
+
+	:<putchar>		; changes no register
+005700	; 	tst 	r0
+001431	; 	beq	ret
+033727	; 1: 	bit	177564,$200
+177564
+000200
+001774	; 	beq	1b
+010037	;	mov	r0,177566
+177566
+033727	; 1:	bit	177564,$200
+177564
+000200
+001774	;	beq	1b
+020027	;	cmp	r0,$12
+000012
+001014	;	bne	ret
+010046	;	mov	r0,-(sp)
+012700	;	mov	$15,r0
+000015
+004737	;	jsr	pc,*$putchar
+<putchar>
+012700	;	mov	$117,r0
+000177
+004737	;	jsr	pc,*$putchar
+<putchar>
+004737	;	jsr	pc,*$putchar
+<putchar>
+012600	;	mov	(sp)+,r0
+000207	; ret:	rts	pc
+
+	:<getch>		; returns character in r0
+033727	; 1: 	bit	177560,$200
+177560
+000200
+001774	;	beq	1b
+013700	;	mov	177562,r0
+177562
+042700	;	bic	$177400,r0
+177400
+020027	;	cmp	r0,$15
+000015
+001002	;	bne	1f
+012700	;	mov	$12,r0
+000012
+000207	; 1:	rts	pc
+
+	:<getchar>		; returns character in r0
+004737	;	jsr	pc,*$getch
+<getch>
+004737	;	jsr	pc,*$putchar
+<putchar>
+000207	;	rts	pc
+
+	:<puts>			; changes r0, r1
+010001	;	mov	r0,r1
+112100	; 1:	movb	(r1)+,r0
+001403	;	beq	ret
+004737	;	jsr	pc,*$putchar
+<putchar>
+000773	;	br	1b
+000207	; ret	rts	pc
+
+	:<putsn>
+010001	;	mov	r0,r1
+112102	;	movb	(r1)+,r2
+001404	;	beq	2f
+112100	; 1:	movb	(r1)+,r0
+004737	;	jsr	pc,*$putchar
+<putchar>
+077204	;	sob	r2,1b
+000207	; 2:	rts	pc
+
+	:<panic>
+012700	;	mov	$panicstr,r0
+<panicstr>
+004737	;	jsr	pc,*$puts
+<puts>
+000000	;	halt
+	:<panicstr>
+.12 'p 'a 'n 'i 'c .12 .0
+
+	:<gets>
+005037	;	clr	*$inp
+<inp>
+012701	;	mov	$inbuf,r1
+<inbuf>
+105021	;	clrb	(r1)+
+004737	; 0:	jsr	pc,*$getch
+<getch>
+020027	;	cmp	r0,$12
+000012
+001423	;	beq	2f
+020027	;	cmp	r0,$10	; backspace
+000010
+001004	;	bne	1f
+004737	;	jsr	pc,*$putchar
+<putchar>
+005301	;	dec	r1
+000764	;	br	0b
+020027	; 1:	cmp	r0,$25	; kill line
+000025
+001005	;	bne	1f
+012700	;	mov	$12,r0
+000012
+004737	;	jsr	pc,*$putchar
+<putchar>
+000752	;	br	gets
+110021	; 1:	movb	r0,(r1)+
+004737	;	jsr	pc,*$putchar
+<putchar>
+000750	;	br	0b
+112711	; 2:	movb	$0,(r1)
+000000
+162701	;	sub	$inbuf+1,r1
+<inbuf>+1
+110137	;	movb	r1,*$inbuf
+<inbuf>
+012700	;	mov	$40,r0
+000040
+004737	;	jsr	pc,*$putchar
+<putchar>
+000207	;	rts	pc
+
+	:<printnsp>
+004737	;	jsr	pc,*$printn
+<printn>
+012700	;	mov	$40,r0
+000040
+004737	;	jsr	pc,*$putchar
+<putchar>
+000207	;	rts	pc
+
+	:<printn>		; changes r0, r1
+005700	;	tst	r0
+100007	;	bpl	$uprintn
+010001	;	mov	r0,r1
+012700	;	mov	$55,r0
+000055
+004737	;	jsr	pc,*$putchar
+<putchar>
+010100	;	mov	r1,r0
+005400	;	neg	r0
+	:<uprintn>		; changes r0, r1
+010001	;	mov	r0,r1
+005000	;	clr	r0
+071037	;	div	*$base,r0
+<base>
+001404	;	beq	1f
+010146	;	mov	r1,-(sp)
+004737	;	jsr	pc,*$uprintn
+<uprintn>
+012601	;	mov	(sp)+,r1
+116100	; 1:	movb	digits(r1),r0
+<digits>
+004737	;	jsr	pc,*$putchar
+<putchar>
+000207	;	rts	pc
+	:<digits>
+	'0 '1 '2 '3 '4 '5 '6 '7 '8 '9 'A 'B 'C 'D 'E 'F
+	:<base>
+	d10
+
+	:<checknum>
+005001	;	clr	r1
+012700	;	mov	$wordbuf,r0
+<wordbuf>
+112002	;	movb	(r0)+,r2
+001442	;	beq	4f
+112003	; 1:	movb	(r0)+,r3	; digit
+020327	; 	cmp	r3,$'0
+'0 .0
+103436	;	blo	4f
+020327	;	cmp	r3,$'9
+'9 .0
+101003	;	bhi	2f
+162703	;	sub	$'0,r3
+'0 .0
+000421	;	br	3f
+020327	; 2:	cmp	r3,$'A		; hex upper case
+'A .0
+103425	;	blo	4f
+020327	; 	cmp	r3,$'F
+'F .0
+101003	;	bhi	2f
+162703	;	sub	$'A,r3
+'A .0
+000410	;	br	3f
+020327	; 2:	cmp	r3,$'a		; hex lower case
+'a .0
+103414	;	blo	4f
+020327	; 	cmp	r3,$'f
+'f .0
+101011	;	bhi	4f
+162703	;	sub	$'A,r3
+'a .0
+070137	; 3:	mul	*$base,r1
+<base>
+060301	;	add	r3,r1
+077237	;	sob	r2,1b
+010100	;	mov	r1,r0
+000241	;	clc
+000207	;	rts	pc
+000261	; 4:	sec			; not a number
+000207	;	rts	pc
+
+	:<parseword>
+012700	;	mov	$wordbuf,r0
+<wordbuf>
+105020	;	clrb	(r0)+
+012701	;	mov	$inbuf+1,r1
+<inbuf>+1
+063701	;	add	*$inp,r1
+<inp>
+121115	; 1:	cmpb	(r1),(r5)	; skip white space
+001010	;	bne	1f
+123737	;	cmpb	*$inp,*$inbuf
+<inp>
+<inbuf>
+103020	;	bhis	2f
+005201	;	inc	r1
+005237	;	inc	*$inp
+<inp>
+000766	;	br	1b
+121115	; 1:	cmpb	(r1),(r5)	; copy to wordbuf
+001412	;	beq	2f
+123737	;	cmpb	*$inp,*$inbuf
+<inp>
+<inbuf>
+103006	;	bhis	2f
+112120	;	movb	(r1)+,(r0)+
+005237	;	inc	*$inp
+<inp>
+105237	;	incb	*$wordbuf
+<wordbuf>
+000764	;	br	1b
+005725	; 2:	tst	+(r5)
+000207	; 	rts	pc
+
+	:<lookup>
+013700	;	mov	*$dict,r0
+<dict>
+005700	; 2:	tst	r0
+001433	;	beq	2f
+112002	; 	movb	(r0)+,r2
+010203	;	mov	r2,r3
+042702	;	bic	$177600,r2
+177600
+042703	;	bic	$177,r3
+000177
+120237	;	cmpb	r2,*$wordbuf
+<wordbuf>
+001014	;	bne	1f
+012701	;	mov	$wordbuf+1,r1
+<wordbuf>+1
+122021	; 0:	cmpb	(r0)+,(r1)+
+001007	;	bne	0f
+077203	;	sob	r2,0b
+005200	;	inc	r0
+042700	;	bic	$1,r0
+000001
+005720	;	tst	(r0)+
+000241	;	clc
+000207	;	rts	pc
+005302	; 0:	dec	r2
+060200	; 1:	add	r2,r0
+005200	;	inc	r0
+042700	;	bic	$1,r0
+000001
+011000	;	mov	(r0),r0		; next
+000743	;	br	2b
+005000	; 2:	clr	r0		; not found
+000261	;	sec
+000207	;	rts	pc
+
+	:<state>
+0
+	:<okstr>
+.40 'o 'k .12 .0
+	:<compstr>
+.40 'c 'o 'm 'p 'i 'l 'e 'd .12 .0
+	:<main>
+012706	;	mov	$rstack,sp	; return stack
+<rstack>
+012705	;	mov	$stack,r5	; parameter stack
+<stack>
+004737	; 0:	jsr	pc,*$gets
+<gets>
+012745	; 1:	mov	$40,-(r5)	; text interpreter entry
+000040
+004737	;	jsr	pc,*$parseword
+<parseword>
+105737	;	tstb	*$wordbuf
+<wordbuf>
+001441	;	beq	1f
+004737	;	jsr	pc,*$lookup
+<lookup>
+103416	;	bcs	2f
+012704	;	mov	$interpret,r4
+<interpret>
+005737	;	tst	*$state
+<state>
+001410	;	beq	5f
+005703	;	tst	r3
+001006	;	bne	5f
+013701	; 	mov	*$here,r1	; compile, lay down xt
+<here>
+010021	;	mov	r0,(r1)+
+010137	;	mov	r1,*$here
+<here>
+000751	;	br	1b
+000130	; 5:	jmp	*(r0)+		; interpret, jump to code in CF
+004737	; 2:	jsr	pc,*$checknum
+<checknum>
+103430	;	bcs	3f
+005737	;	tst	*$state
+<state>
+001002	;	bne	5f
+010045	;	mov	r0,-(r5)	; interpret, push number
+000740	;	br	1b
+013701	; 5:	mov	*$here,r1	; compile, lay down literal
+<here>
+012721	;	mov	$<c-p-literal-p>-2,(r1)+
+<c-p-literal-p>-2
+010021	;	mov	r0,(r1)+
+010137	;	mov	r1,*$here
+<here>
+000730	;	br	1b
+005737	; 1:	tst	*$state
+<state>
+001003	;	bne	1f
+012700	;	mov	$okstr,r0
+<okstr>
+000402	;	br	2f
+012700	; 1:	mov	$compstr,r0
+<compstr>
+004737	; 2:	jsr	pc,*$puts
+<puts>
+000713	; 	br	0b
+010046	; 3:	mov	r0,-(sp)
+000137	;	jmp	*$panic
+<panic>
+
+	:<docolon>
+010446	;	mov	r4,-(sp)
+010004	;	mov	r0,r4
+012400	; next:	mov	(r4)+,r0	; use <<NEXT>> to inline
+000130	;	jmp	*(r0)+
+	:<exit>
+012604	;	mov	(sp)+,r4
+000774	;	br	next
+
+	:<interpret>	; jump back to text interpreter
+	<interpret>+2	; IP points here
+	<interpret>+4	; code field
+000137	;	jmp	*$main+14
+<main>+14
+
+	:<inbuf>
+0
+	:<inp>
+0
+	:<wordbuf>
+0
+
+	:<here>
+<dict-end>
+	:<dict>
+<d-1sq>
+
+	:<d-foo>
+.3 'f 'o 'o	; name
+0		; link
+<c-constant>	; code
+d1234		; parameter
+
+	:<c-constant>
+011045	;	mov	(r0),-(r5)
+<<NEXT>>
+
+	:<d-dot>
+.1 '.
+<d-foo>
+<c-dot>
+	:<c-dot>
+012500	;	mov	(r5)+,r0
+004737	;	jsr	pc,*$printnsp
+<printnsp>
+<<NEXT>>
+
+	:<d-dot-s>
+.2 '. 's .0
+<d-dot>
+<c-dot-s>
+	:<c-dot-s>
+012700	;	mov	'<,r0
+'< .0
+004737	;	jsr	pc,*$putchar
+<putchar>
+012702	;	mov	$stack,r2
+<stack>
+010200	;	mov	r2,r0
+160500	;	sub	r5,r0
+006200	;	asr	r0
+004737	;	jsr	pc,*$printn
+<printn>
+012700	;	mov	'>,r0
+'> .0
+004737	;	jsr	pc,*$putchar
+<putchar>
+012700	;	mov	$40,r0
+000040
+004737	;	jsr	pc,*$putchar
+<putchar>
+020205	; 1:	cmp	r2,r5
+101404	;	blos	1f
+014200	;	mov	-(r2),r0
+004737	;	jsr	pc,*$printnsp
+<printnsp>
+000772	;	br	1b
+<<NEXT>>; 1:
+
+	:<d-plus>
+.1 '+
+<d-dot-s>
+<c-plus>
+	:<c-plus>
+062515	;	add	(r5)+,(r5)
+<<NEXT>>
+
+	:<d-minus>
+.1 '-
+<d-plus>
+<c-minus>
+	:<c-minus>
+162515	;	sub	(r5)+,(r5)
+<<NEXT>>
+
+	:<d-star>
+.1 '*
+<d-minus>
+<c-star>
+	:<c-star>
+012501	;	mov	(r5)+,r1
+070125	;	mul	r1,(r5)+
+010145	;	mov	r1,-(r5)
+<<NEXT>>
+
+	:<d-slash>
+.1 '/
+<d-star>
+<c-slash>
+	:<c-slash>
+005000	;	clr	r0
+012502	;	mov	(r5)+,r2
+012501	;	mov	(r5)+,r1
+071002	;	div	r2,r0
+010045	;	mov	r0,-(r5)
+<<NEXT>>
+
+	:<d-mod>
+.3 'm 'o 'd
+<d-slash>
+<c-mod>
+	:<c-mod>
+005000	;	clr	r0
+012502	;	mov	(r5)+,r2
+012501	;	mov	(r5)+,r1
+071002	;	div	r2,r0
+010045	;	mov	r1,-(r5)
+<<NEXT>>
+
+	:<d-dup>
+.3 'd 'u 'p
+<d-mod>
+<c-dup>
+	:<c-dup>
+011545	;	mov	(r5),-(r5)
+<<NEXT>>
+
+	:<d-exit>
+.4 'e 'x 'i 't .0
+<d-dup>
+<exit>
+
+	:<d-p-literal-p>
+.d9 '( 'l 'i 't 'e 'r 'a 'l ')
+<d-exit>
+<c-p-literal-p>
+	:<c-p-literal-p>
+012445	;	mov	(r4)+,-(r5)
+<<NEXT>>
+
+	:<d-left-bracket>
+.1 '[
+<d-p-literal-p>
+<c-left-bracket>
+	:<c-left-bracket>
+012737	;	mov	$1,*$state
+000001
+<state>
+<<NEXT>>
+
+	:<d-right-bracket>
+.1|200 ']
+<d-left-bracket>
+<c-right-bracket>
+	:<c-right-bracket>
+012737	;	mov	$0,*$state
+000000
+<state>
+<<NEXT>>
+
+	:<d-colon>
+.1 ':
+<d-right-bracket>
+<c-colon>
+	:<c-colon>
+012745	;	mov	$40,-(r5)
+000040
+004737	;	jsr	pc,*$parseword
+<parseword>
+012700	;	mov	$wordbuf,r0
+<wordbuf>
+105710	;	tstb	(r0)
+001427	;	beq	2f
+013701	;	mov	*$here,r1
+<here>
+111002	;	movb	(r0),r2
+112021	; 	movb	(r0)+,(r1)+	; NF
+112021	; 1:	movb	(r0)+,(r1)+
+077202	;	sob	r2,1b
+005201	;	inc	r1
+042701	;	bic	$1,r1
+000001
+013721	;	mov	*$dict,(r1)+	; LF
+<dict>
+013737	;	mov	*$here,*$dict
+<here>
+<dict>
+012721	;	mov	$docolon,(r1)+	; CF
+<docolon>
+010137	;	mov	r1,*$here
+<here>
+012737	;	mov	$1,*$state
+000001
+<state>
+<<NEXT>>; next
+	;
+010046	; 2:	mov	r0,-(sp)
+000137	;	jmp	*$panic
+<panic>
+
+	:<d-semicolon>
+.1|200 .73	; can't use char literal (comment char)
+<d-colon>
+<c-semicolon>
+	:<c-semicolon>
+013701	;	mov	*$here,r1
+<here>
+012721	;	mov	$<d-exit>+10,(r1)+
+<d-exit>+10
+010137	;	mov	r1,*$here
+<here>
+012737	;	mov	$0,*$state
+000000
+<state>
+<<NEXT>>
+
+	:<d-add1>
+.2 '+ '1 .0
+<d-semicolon>
+<docolon>
+	<c-p-literal-p>-2
+	1
+	<c-plus>-2
+	<d-exit>+10
+
+	:<d-1sq>
+.4 '+ '1 's 'q .0
+<d-add1>
+<docolon>
+	<d-add1>+6
+	<c-dup>-2
+	<c-star>-2
+	<d-exit>+10
+
+	:<dict-end>
+0
+
+:<main>
