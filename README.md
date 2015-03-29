@@ -1,9 +1,9 @@
 # Forth in PDP-11 machine code
 
-(Ainlif is gothic for eleven)
+Ainlif is Gothic for eleven.
 
 ## How to run
- - start pdp11
+ - start pdp11 from simh
  - load papertape with "l[oad] pt"
  - run main with "g[o]"
 
@@ -26,4 +26,4 @@ The dictionary contains atm:
 - :
 - ;
 - +1 (adds one to TOS)
-- 1sq (adds one to TOS and squares)
+- +1sq (adds one to TOS and squares)
